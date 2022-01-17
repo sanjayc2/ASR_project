@@ -5,22 +5,22 @@ Defines a functions for training a NN.
 from data_generator import AudioGenerator
 import _pickle as pickle
 
-#from keras import backend as K
-#from keras.models import Model
-#from keras.layers import (Input, Lambda)
-#from keras.optimizers import SGD
-#from keras.callbacks import ModelCheckpoint
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (Input, Lambda)
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.callbacks import ModelCheckpoint
 import os
-import torch
-import torch.nn as nn
-import torch.nn.utils as utils
-import torch.optim as optim
-import torch.nn.functional as F
-import torchaudio
-from torch.utils.tensorboard import SummaryWriter
+#import torch
+#import torch.nn as nn
+#import torch.nn.utils as utils
+#import torch.optim as optim
+#import torch.nn.functional as F
+#import torchaudio
+#from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
-'''def ctc_lambda_func(args):
+def ctc_lambda_func(args):
     y_pred, labels, input_length, label_length = args
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
@@ -79,15 +79,15 @@ def train_model(input_to_softmax,
     checkpointer = ModelCheckpoint(filepath='results/'+save_model_path, verbose=0)
 
     # train the model
-    hist = model.fit_generator(generator=audio_gen.next_train(), steps_per_epoch=steps_per_epoch,
+    hist = model.fit(x=audio_gen.next_train(), steps_per_epoch=steps_per_epoch,
         epochs=epochs, validation_data=audio_gen.next_valid(), validation_steps=validation_steps,
         callbacks=[checkpointer], verbose=verbose)
 
     # save model loss
     with open('results/'+pickle_path, 'wb') as f:
         pickle.dump(hist.history, f)
-'''
 
+'''
 train_audio_transforms = nn.Sequential(
     #torchaudio.transforms.MelSpectrogram(sample_rate=16000, n_mels=128),
     torchaudio.transforms.FrequencyMasking(freq_mask_param=30),
@@ -250,4 +250,4 @@ def train_model_pytorch(model,
     with open('results/'+pickle_path, 'wb') as f:
         torch.save({'loss': train_loss,
                    'val_loss': valid_loss}, f)
-                   
+'''

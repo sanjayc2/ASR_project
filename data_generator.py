@@ -15,7 +15,39 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from utils import calc_feat_dim, spectrogram_from_file, text_to_int_sequence
 from utils import conv_output_length
 
+import tensorflow as tf
+import tensorflow_io as tfio
+
 RNG_SEED = 123
+
+# Add data processing (frequency and time masking)
+def data_processing(data, data_type="train"):
+    spectrograms = []
+    labels = []
+    input_lengths = []
+    label_lengths = []
+    # data is a dict.. get the waveforms and utterances ndarrays
+    specgrams = data['the_input']                
+    utterances = data['the_labels']
+    for specgram, utterance in zip(specgrams, utterances):
+        if data_type == 'train':
+            freq_mask = tfio.audio.freq_mask(specgram, param=30)
+            time_mask = tfio.audio.time_mask(freq_mask, param=100)
+            spec = time_mask  #tf.Variable(specgram)
+        elif data_type == 'valid':
+            spec = specgram  #tf.Variable(specgram)
+        else:
+            raise Exception('data_type should be train or valid')
+        spectrograms.append(spec)
+        label = utterance # tf.Variable(utterance)
+        labels.append(label)
+        input_lengths.append(spec.shape[0]//2)
+        label_lengths.append(len(utterance))
+
+    #print("spectrogram[0] shape:", spectrograms[0].shape)
+    #print("labels[0] shape:", labels[0].shape)
+    
+    return spectrograms, labels, input_lengths, label_lengths
 
 class AudioGenerator():
     def __init__(self, step=10, window=20, max_freq=8000, mfcc_dim=13,
@@ -98,13 +130,27 @@ class AudioGenerator():
  
         # return the arrays
         #print("X_data shape:", X_data.shape)
-        #print("labels:", labels)
+        #print("labels shape:", labels.shape)
         outputs = {'ctc': np.zeros([self.minibatch_size])}
-        inputs = {'the_input': X_data, 
-                  'the_labels': labels, 
+        input_data = {'the_input': X_data, 
+                      'the_labels': labels, 
+                      'input_length': input_length, 
+                      'label_length': label_length 
+                     }
+        
+        # Augment the data using frequency and time masking (similar to the SpecAugment paper)
+        spectrograms, labels, input_lengths, label_lengths = data_processing(input_data, partition)
+        the_spectograms = np.reshape(spectrograms, (len(spectrograms), -1, 
+                                                    self.feat_dim*self.spectrogram + self.mfcc_dim*(not self.spectrogram)))
+        the_labels = np.reshape(labels, (len(labels), -1))
+        #print("spectrograms shape:", the_spectograms.shape)
+        inputs = {'the_input': the_spectograms, 
+                  'the_labels': the_labels, 
                   'input_length': input_length, 
                   'label_length': label_length 
                  }
+        
+        
         return (inputs, outputs)
 
     def shuffle_data_by_partition(self, partition):
