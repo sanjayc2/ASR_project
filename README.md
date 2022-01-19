@@ -1,5 +1,5 @@
 # ASR_project_CNN+RNN_CTC
-This is a repository for my ASR project for a Udacity project. It was built using Tensorflow2, and was run on my gaming laptop (which has one GPU and six CPU cores).
+This is a repository for my Automated Speech Recognition project for a Udacity project. It was built using Tensorflow2, and was run on my gaming laptop (which has one GPU and six CPU cores).
 It uses the LibriSpeech dataset. The json files for the train and test corpus were first generated. An audio spectrogram feature representation of the audio was used. Much of the data processing functionality was provided by Udacity in the data_generator.py file. I added a data processing function to use data augmentation, i.e. time and frequency masking from tensorflow I/O, which significantly improved generalizability.
 The train_utils.py contains the utility function for training the model. Note that, while the file contains a pytorch-based training function, that was not eventally used.
 
